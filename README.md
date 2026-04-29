@@ -170,7 +170,7 @@ npm run uninstall-schedule:win
 ## Schedule Behavior
 
 - scheduler ticks every 5 minutes,
-- actual scraping runs only on **Mon/Thu 10:00 GMT+1** window,
+- actual scraping runs only on **Mon/Thu 10:00 Montenegro local time** (`schedule.timeZone`, default `Europe/Podgorica`) window,
 - dedup state is stored in `output/zara-montenegro-state.json`.
 
 ## Profile Isolation

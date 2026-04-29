@@ -44,5 +44,5 @@ launchctl unload "$PLIST_PATH" 2>/dev/null || true
 launchctl load "$PLIST_PATH"
 
 echo "Installed launchd schedule: $PLIST_LABEL"
-echo "Runs every 5 minutes; real execution happens only Mon/Thu 10:00 GMT+1."
+echo "Runs every 5 minutes; real execution happens only Mon/Thu 10:00 Montenegro local (default Europe/Podgorica)."
 echo "Logs: $LOG_FILE"

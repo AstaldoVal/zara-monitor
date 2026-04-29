@@ -31,7 +31,7 @@ const DEFAULT_CONFIG = {
     rejectDoNotWash: true
   },
   schedule: {
-    timeZone: 'Etc/GMT-1',
+    timeZone: 'Europe/Podgorica',
     weekdays: ['MON', 'THU'],
     hour: 10,
     allowedMinutes: [0, 1, 2, 3, 4]

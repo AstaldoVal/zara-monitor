@@ -98,9 +98,9 @@ async function main() {
   );
 
   const timezone = String(
-    (await ask(`Schedule timezone [${currentSchedule.timeZone || 'Etc/GMT-1'}]: `)).trim() ||
+    (await ask(`Schedule timezone [${currentSchedule.timeZone || 'Europe/Podgorica'}]: `)).trim() ||
       currentSchedule.timeZone ||
-      'Etc/GMT-1'
+      'Europe/Podgorica'
   );
 
   const patch = {

@@ -29,7 +29,7 @@
     "rejectDoNotWash": true
   },
   "schedule": {
-    "timeZone": "Etc/GMT-1",
+    "timeZone": "Europe/Podgorica",
     "weekdays": [
       "MON",
       "THU"

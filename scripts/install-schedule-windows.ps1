@@ -17,4 +17,4 @@ schtasks /Create `
   /F | Out-Null
 
 Write-Host "Installed Windows task: $TaskName"
-Write-Host "Runs every 5 minutes; real execution happens only Mon/Thu 10:00 GMT+1."
+Write-Host "Runs every 5 minutes; real execution happens only Mon/Thu 10:00 Montenegro local (default Europe/Podgorica)."

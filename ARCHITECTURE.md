@@ -13,7 +13,7 @@ Main goals:
 
 1. `src/scheduler.cjs` decides whether to run now:
    - manual run (`--run-now`)
-   - scheduled run (`--scheduled`, Mon/Thu 10:00 GMT+1 gate)
+   - scheduled run (`--scheduled`, Mon/Thu 10:00 gate in `schedule.timeZone`, default Montenegro `Europe/Podgorica`)
 2. `src/monitor.cjs`:
    - loads catalog cards for each scope (`women_new`, `women_full`),
    - parses product detail and `extra-detail` payload,

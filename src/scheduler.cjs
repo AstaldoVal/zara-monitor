@@ -9,7 +9,7 @@ const APP_ROOT = path.resolve(__dirname, '..');
 const STATE_FILE = path.join(OUTPUT_DIR, 'scheduler-state.json');
 const APP_CONFIG = loadAppConfig();
 const SCHEDULE = APP_CONFIG.schedule || {};
-const TARGET_TIME_ZONE = SCHEDULE.timeZone || 'Etc/GMT-1';
+const TARGET_TIME_ZONE = SCHEDULE.timeZone || 'Europe/Podgorica';
 const TARGET_WEEKDAYS = new Set((SCHEDULE.weekdays || ['MON', 'THU']).map((d) => String(d).toUpperCase()));
 const TARGET_HOUR = Number(SCHEDULE.hour ?? 10);
 const ALLOWED_MINUTES = new Set(Array.isArray(SCHEDULE.allowedMinutes) ? SCHEDULE.allowedMinutes : [0, 1, 2, 3, 4]);
@@ -31,7 +31,7 @@ function writeState(state) {
   fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2), 'utf8');
 }
 
-function getGmt1Parts() {
+function getScheduleZoneParts() {
   const formatter = new Intl.DateTimeFormat('en-GB', {
     timeZone: TARGET_TIME_ZONE,
     weekday: 'short',
@@ -57,7 +57,7 @@ function getGmt1Parts() {
 }
 
 function shouldRunNow() {
-  const now = getGmt1Parts();
+  const now = getScheduleZoneParts();
   const correctWeekday = TARGET_WEEKDAYS.has(now.weekday);
   const correctHour = now.hour === TARGET_HOUR;
   const correctMinute = ALLOWED_MINUTES.has(now.minute);
@@ -80,7 +80,9 @@ async function runScheduled() {
   const alreadyRan = Boolean(state.runs[now.dateKey]);
 
   if (!due) {
-    console.log(`[scheduler] Not due. GMT+1 now: ${now.weekday} ${now.dateKey} ${now.hour}:${String(now.minute).padStart(2, '0')}`);
+    console.log(
+      `[scheduler] Not due. Montenegro local (${TARGET_TIME_ZONE}) now: ${now.weekday} ${now.dateKey} ${now.hour}:${String(now.minute).padStart(2, '0')}`
+    );
     return;
   }
   if (alreadyRan) {
@@ -88,7 +90,7 @@ async function runScheduled() {
     return;
   }
 
-  console.log(`[scheduler] Running Zara monitor for ${now.dateKey} at GMT+1 target window.`);
+  console.log(`[scheduler] Running Zara monitor for ${now.dateKey} in Montenegro local window (${TARGET_TIME_ZONE}).`);
   const result = await runMonitor({ headless: false });
   state.runs[now.dateKey] = {
     ranAtIso: new Date().toISOString(),
