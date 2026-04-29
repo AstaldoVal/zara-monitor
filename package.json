@@ -5,6 +5,7 @@
   "description": "Local Zara Montenegro monitor for women new arrivals",
   "scripts": {
     "setup": "node scripts/setup-interactive.cjs",
+    "onboard": "npm run setup",
     "setup:deps": "npm install && npx playwright install chrome",
     "configure": "node scripts/configure.cjs",
     "doctor": "node scripts/doctor.cjs",

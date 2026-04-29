@@ -38,6 +38,12 @@ Node.js LTS:
 
 ### 1) Run interactive setup
 
+Recommended one-command onboarding:
+
+```bash
+npm run onboard
+```
+
 From this folder:
 
 - macOS: double-click `setup.command`
@@ -81,6 +87,9 @@ npm run run-full
 ## Commands
 
 ```bash
+# one-command onboarding (recommended)
+npm run onboard
+
 # interactive setup wizard
 npm run setup
 
@@ -108,7 +117,26 @@ npm run run-full
 - `README.md` - setup and usage
 - `ARCHITECTURE.md` - system design and extension points
 - `CONTRIBUTING.md` - development workflow and PR checklist
+- `AGENTS.md` - how agents should run this project from natural-language user requests
 - `LICENSE` - MIT license
+
+## Agent-First Usage (Cursor / Claude Code / Manus)
+
+If user works through an agent, the user can just type plain language, for example:
+- "onboarding"
+- "set up this project"
+- "run full scan"
+- "reconfigure filters"
+
+Agent should translate that to project commands (see `AGENTS.md`) and run them.
+
+Default onboarding command for agents:
+
+```bash
+npm run onboard
+```
+
+This keeps terminal interaction on the agent side, not the user side.
 
 ## Configuration
 
