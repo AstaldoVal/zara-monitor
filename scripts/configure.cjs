@@ -43,7 +43,8 @@ async function main() {
   const currentSchedule = cfg.schedule || {};
 
   console.log('=== Zara Monitor Configuration Wizard ===');
-  console.log('Answer questions one by one. Press Enter to keep current value.\n');
+  console.log('Answer questions one by one. Press Enter to keep current value.');
+  console.log('Schedule block: weekdays, IANA timezone, then hour 0-23 in that zone.\n');
 
   const womenNew = parseYesNo(
     await ask(`Enable scope Women -> The New? [${currentScopes.womenNew ? 'Y' : 'N'}]: `),
@@ -90,17 +91,20 @@ async function main() {
     currentSchedule.weekdays || ['MON', 'THU']
   ).map((v) => v.toUpperCase());
 
+  const defaultTz = currentSchedule.timeZone || 'Europe/Podgorica';
+  const timezone = String(
+    (
+      await ask(
+        `Schedule timezone IANA id (e.g. Europe/Podgorica for Montenegro; Europe/Lisbon, UTC) [${defaultTz}]: `
+      )
+    ).trim() || defaultTz
+  );
+
   const scheduleHour = parseIntSafe(
-    await ask(`Schedule hour (0-23, target timezone) [${currentSchedule.hour ?? 10}]: `),
+    await ask(`Schedule hour 0-23 in that timezone [${currentSchedule.hour ?? 10}]: `),
     currentSchedule.hour ?? 10,
     0,
     23
-  );
-
-  const timezone = String(
-    (await ask(`Schedule timezone [${currentSchedule.timeZone || 'Europe/Podgorica'}]: `)).trim() ||
-      currentSchedule.timeZone ||
-      'Europe/Podgorica'
   );
 
   const patch = {

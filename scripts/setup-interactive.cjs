@@ -87,7 +87,7 @@ async function main() {
   console.log('1) Ensure Node.js/npm are available (auto-install attempt optional)');
   console.log('2) Install Node dependencies');
   console.log('3) Install Playwright Chrome runtime');
-  console.log('4) Configure product parameters (interactive, one by one)');
+  console.log('4) Configure filters, schedule, and IANA timezone (same wizard as npm run configure)');
   console.log('5) (Optional) Open dedicated Chrome profile for manual Zara onboarding');
   console.log('6) (Optional) Install local scheduler');
   console.log('');
@@ -98,7 +98,7 @@ async function main() {
     process.exit(0);
   }
 
-  console.log('\n[Step 1/5] Checking Node.js/npm...');
+  console.log('\n[Step 1/6] Checking Node.js/npm...');
   const hasNode = await ensureNodeInstalled();
   if (!hasNode) {
     console.log('\nAutomatic Node.js installation did not complete.');
@@ -113,7 +113,7 @@ async function main() {
   console.log('\n[Step 3/6] Installing Playwright Chrome runtime...');
   run('npx', ['playwright', 'install', 'chrome']);
 
-  console.log('\n[Step 4/6] Configuring monitor parameters...');
+  console.log('\n[Step 4/6] Configuring filters, schedule, and timezone...');
   run('npm', ['run', 'configure']);
 
   const runOnboarding = await ask('\n[Step 5/6] Open dedicated profile onboarding now? (y/N): ');

@@ -28,7 +28,7 @@ npm run onboard
 ```
 
 If user says:
-- "reconfigure filters/settings" -> `npm run configure`
+- "reconfigure filters/settings/schedule/timezone" -> `npm run configure`
 - "check environment" -> `npm run doctor`
 - "run now" -> `npm run run-once`
 - "full scan" -> `npm run run-full`

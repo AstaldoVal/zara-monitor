@@ -22,7 +22,7 @@ A product is included in `*_matches` only if all checks that you left enabled pa
 - **Size** — availability for `filters.requiredSize` (not only `S`; default is `S`).
 - **Montenegro availability** — if `filters.requireMontenegroInStock` is true, the usual in-stock / orderable checks apply; set to false to skip this gate (still useful for local experiments).
 
-To change filters after install: `npm run configure` (or ask your agent to run it). Advanced edits: `config/user-config.json` (see keys above).
+To change filters or schedule (including timezone) after install: `npm run configure` (or ask your agent to run it). Advanced edits: `config/user-config.json` (see `filters.*` and `schedule.*` keys).
 
 Excel diagnostics include:
 - `main_fabric_raw`, `secondary_fabric_raw`, `unknown_section_raw`,
@@ -63,7 +63,7 @@ npm run setup
 The interactive setup will:
 1. install npm dependencies,
 2. install Playwright Chrome runtime,
-3. ask configuration questions one-by-one and save answers,
+3. run the configuration wizard (filters, weekdays, **IANA timezone** `schedule.timeZone`, local hour `schedule.hour`),
 4. optionally open a dedicated Chrome profile for manual Zara onboarding,
 5. optionally install local scheduler.
 

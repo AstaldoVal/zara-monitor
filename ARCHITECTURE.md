@@ -54,7 +54,7 @@ Final inclusion requires every enabled check to pass.
 
 ## Setup Tooling
 
-- `scripts/setup-interactive.cjs`: end-user setup wizard.
+- `scripts/setup-interactive.cjs`: end-user setup wizard (step 4 runs `npm run configure`, which sets `filters.*` and `schedule.*` including `schedule.timeZone` IANA id).
 - `scripts/profile-onboarding.cjs`: manual profile bootstrap.
 - `scripts/doctor.cjs`: environment validation.
 - platform scheduler scripts in `scripts/`.
