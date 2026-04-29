@@ -87,8 +87,9 @@ async function main() {
   console.log('1) Ensure Node.js/npm are available (auto-install attempt optional)');
   console.log('2) Install Node dependencies');
   console.log('3) Install Playwright Chrome runtime');
-  console.log('4) (Optional) Open dedicated Chrome profile for manual Zara onboarding');
-  console.log('5) (Optional) Install local scheduler');
+  console.log('4) Configure product parameters (interactive, one by one)');
+  console.log('5) (Optional) Open dedicated Chrome profile for manual Zara onboarding');
+  console.log('6) (Optional) Install local scheduler');
   console.log('');
 
   const proceed = await ask('Continue setup? (y/N): ');
@@ -106,20 +107,23 @@ async function main() {
     process.exit(1);
   }
 
-  console.log('\n[Step 2/5] Installing dependencies...');
+  console.log('\n[Step 2/6] Installing dependencies...');
   run('npm', ['install']);
 
-  console.log('\n[Step 3/5] Installing Playwright Chrome runtime...');
+  console.log('\n[Step 3/6] Installing Playwright Chrome runtime...');
   run('npx', ['playwright', 'install', 'chrome']);
 
-  const runOnboarding = await ask('\n[Step 4/5] Open dedicated profile onboarding now? (y/N): ');
+  console.log('\n[Step 4/6] Configuring monitor parameters...');
+  run('npm', ['run', 'configure']);
+
+  const runOnboarding = await ask('\n[Step 5/6] Open dedicated profile onboarding now? (y/N): ');
   if (runOnboarding === 'y' || runOnboarding === 'yes') {
     run('node', ['scripts/profile-onboarding.cjs']);
   } else {
     console.log('Skipped profile onboarding.');
   }
 
-  const installSchedule = await ask('\n[Step 5/5] Install scheduler on this machine now? (y/N): ');
+  const installSchedule = await ask('\n[Step 6/6] Install scheduler on this machine now? (y/N): ');
   if (installSchedule === 'y' || installSchedule === 'yes') {
     if (isMac) run('npm', ['run', 'install-schedule:mac']);
     else if (isWindows) run('npm', ['run', 'install-schedule:win']);

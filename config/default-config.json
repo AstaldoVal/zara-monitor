@@ -1,0 +1,50 @@
+{
+  "scopes": {
+    "womenNew": true,
+    "womenFull": true
+  },
+  "filters": {
+    "colorKeywords": [
+      "melange",
+      "grey",
+      "light grey",
+      "light blue",
+      "sky blue",
+      "ice blue",
+      "greenish",
+      "sage",
+      "sea green"
+    ],
+    "targetFabrics": [
+      "cotton",
+      "silk",
+      "mulberry silk",
+      "viscose",
+      "wool",
+      "cashmere"
+    ],
+    "mixedMainMinTargetPercent": 70,
+    "requiredSize": "S",
+    "requireMontenegroInStock": true,
+    "rejectDoNotWash": true
+  },
+  "schedule": {
+    "timeZone": "Etc/GMT-1",
+    "weekdays": [
+      "MON",
+      "THU"
+    ],
+    "hour": 10,
+    "allowedMinutes": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "runtime": {
+    "browserChannel": "chrome",
+    "headless": false
+  }
+}

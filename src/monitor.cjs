@@ -4,15 +4,25 @@ const fs = require('fs');
 const path = require('path');
 const { chromium } = require('playwright');
 const XLSX = require('xlsx');
+const { loadAppConfig } = require('./config.cjs');
 
 const APP_ROOT = path.resolve(__dirname, '..');
-const OUTPUT_DIR = path.resolve(process.env.ZARA_OUTPUT_DIR || path.join(APP_ROOT, 'output'));
-const PROFILE_DIR = path.resolve(process.env.ZARA_PROFILE_DIR || path.join(APP_ROOT, '.playwright-zara-profile'));
-const BROWSER_CHANNEL = process.env.ZARA_BROWSER_CHANNEL || 'chrome';
-const DEFAULT_HEADLESS = process.env.ZARA_HEADLESS === '1';
+const APP_CONFIG = loadAppConfig();
+const RUNTIME_CONFIG = APP_CONFIG.runtime || {};
+const FILTER_CONFIG = APP_CONFIG.filters || {};
+const SCOPE_FLAGS = APP_CONFIG.scopes || {};
+const OUTPUT_DIR = path.resolve(
+  process.env.ZARA_OUTPUT_DIR || RUNTIME_CONFIG.outputDir || path.join(APP_ROOT, 'output')
+);
+const PROFILE_DIR = path.resolve(
+  process.env.ZARA_PROFILE_DIR || RUNTIME_CONFIG.profileDir || path.join(APP_ROOT, '.playwright-zara-profile')
+);
+const BROWSER_CHANNEL = process.env.ZARA_BROWSER_CHANNEL || RUNTIME_CONFIG.browserChannel || 'chrome';
+const DEFAULT_HEADLESS =
+  process.env.ZARA_HEADLESS === '1' ? true : Boolean(RUNTIME_CONFIG.headless);
 const WOMEN_NEW_URL = 'https://www.zara.com/me/en/woman-new-in-l1180.html?v1=2546081';
 const WOMEN_CATEGORIES_URL = 'https://www.zara.com/me/en/categories?categoryId=1881757&categorySeoId=1000&ajax=true';
-const SCOPE_CONFIGS = [
+const BASE_SCOPE_CONFIGS = [
   { id: 'women_new', sheetPrefix: 'new', label: 'Women -> The New', type: 'listing_url', url: WOMEN_NEW_URL },
   { id: 'women_full', sheetPrefix: 'full', label: 'Women -> Full Catalog', type: 'women_full' }
 ];
@@ -22,26 +32,12 @@ const LIST_WAIT_MS = 12000;
 const PRODUCT_WAIT_MS = 1200;
 const CATALOG_STORE_ID = 11714;
 
-const COLOR_KEYWORDS = [
-  'melange',
-  'grey',
-  'light grey',
-  'light blue',
-  'sky blue',
-  'ice blue',
-  'greenish',
-  'sage',
-  'sea green'
-];
-
-const TARGET_FABRICS = [
-  'cotton',
-  'silk',
-  'mulberry silk',
-  'viscose',
-  'wool',
-  'cashmere'
-];
+const COLOR_KEYWORDS = (FILTER_CONFIG.colorKeywords || []).map((v) => String(v).toLowerCase());
+const TARGET_FABRICS = (FILTER_CONFIG.targetFabrics || []).map((v) => String(v).toLowerCase());
+const MIXED_MAIN_MIN_TARGET_PERCENT = Number(FILTER_CONFIG.mixedMainMinTargetPercent ?? 70);
+const REQUIRED_SIZE = String(FILTER_CONFIG.requiredSize || 'S').toUpperCase();
+const REQUIRE_MONTENEGRO_IN_STOCK = FILTER_CONFIG.requireMontenegroInStock !== false;
+const REJECT_DO_NOT_WASH = FILTER_CONFIG.rejectDoNotWash !== false;
 
 function ensureDir(dirPath) {
   fs.mkdirSync(dirPath, { recursive: true });
@@ -228,9 +224,9 @@ function evaluateComposition(compositionLines) {
   if (passed && !containsTargetFabric) {
     passed = false;
     reason = 'target_fabric_not_in_main';
-  } else if (passed && mixedMainFabric && targetFabricPercent <= 70) {
+  } else if (passed && mixedMainFabric && targetFabricPercent <= MIXED_MAIN_MIN_TARGET_PERCENT) {
     passed = false;
-    reason = 'mixed_main_target_fabric_le_70';
+    reason = `mixed_main_target_fabric_le_${MIXED_MAIN_MIN_TARGET_PERCENT}`;
   }
 
   return {
@@ -270,11 +266,11 @@ function evaluateColor(colorValue) {
 }
 
 function matchComposition(targetFabricPercent) {
-  return targetFabricPercent > 70;
+  return targetFabricPercent > MIXED_MAIN_MIN_TARGET_PERCENT;
 }
 
-function hasSizeS(sizeTokens) {
-  return sizeTokens.includes('S');
+function hasRequiredSize(sizeTokens) {
+  return sizeTokens.includes(REQUIRED_SIZE);
 }
 
 function parseSizeTokens(text) {
@@ -299,10 +295,11 @@ function evaluateCare(careLines) {
   const normalized = (careLines || []).map((line) => normalizeSpace(line)).filter(Boolean);
   const fullText = lower(normalized.join('\n'));
   const hasDoNotWash = fullText.includes('do not wash');
+  const washable = REJECT_DO_NOT_WASH ? !hasDoNotWash : true;
   return {
-    washable: !hasDoNotWash,
+    washable,
     hasDoNotWash,
-    reason: hasDoNotWash ? 'do_not_wash' : 'wash_allowed',
+    reason: !REJECT_DO_NOT_WASH ? 'care_rule_disabled' : hasDoNotWash ? 'do_not_wash' : 'wash_allowed',
     careRaw: normalized.join('; ')
   };
 }
@@ -577,12 +574,12 @@ async function parseProduct(context, productCard) {
   const sizeSMatchFromLdJson = productObjects.some((product) => {
     const size = String(product?.size || '').toUpperCase();
     const availability = String(product?.offers?.availability || '').toLowerCase();
-    return size === 'S' && availability.includes('instock');
+    return size === REQUIRED_SIZE && availability.includes('instock');
   });
   const sizeTokens = productObjects
     .map((product) => String(product?.size || '').toUpperCase())
     .filter(Boolean);
-  const sizeSMatchFromText = hasSizeS(sizeTokens.length ? sizeTokens : parseSizeTokens(text.toUpperCase()));
+  const sizeSMatchFromText = hasRequiredSize(sizeTokens.length ? sizeTokens : parseSizeTokens(text.toUpperCase()));
   const sizeSMatch = sizeSMatchFromLdJson || sizeSMatchFromText;
 
   const color = normalizeSpace(firstProduct.color || productCard.color || parseColorFromText(`\n${text}\n${snapshot.title}`));
@@ -594,7 +591,7 @@ async function parseProduct(context, productCard) {
   const compositionMatch = compositionEval.passed;
   const careMatch = careEval.washable;
   const sizeSAvailable = sizeSMatch;
-  const montenegroOrderAvailable = orderAvailable;
+  const montenegroOrderAvailable = REQUIRE_MONTENEGRO_IN_STOCK ? orderAvailable : true;
 
   return {
     scannedAt: new Date().toISOString(),
@@ -612,6 +609,7 @@ async function parseProduct(context, productCard) {
     targetFabricPercentSecondary: compositionEval.targetFabricPercentSecondary,
     compositionMode: compositionEval.mode,
     compositionReason: compositionEval.reason,
+    requiredSize: REQUIRED_SIZE,
     careRaw: careEval.careRaw,
     careSource,
     washable: careEval.washable,
@@ -637,8 +635,8 @@ function buildDecisionReason(item) {
   if (!item?.matches?.colorMatch) reasons.push('color');
   if (!item?.matches?.compositionMatch) reasons.push('composition');
   if (!item?.matches?.careMatch) reasons.push('care');
-  if (!item?.matches?.sizeSMatch) reasons.push('size_S');
-  if (!item?.matches?.montenegroAvailable) reasons.push('availability_ME');
+  if (!item?.matches?.sizeSMatch) reasons.push(`size_${REQUIRED_SIZE}`);
+  if (!item?.matches?.montenegroAvailable) reasons.push(REQUIRE_MONTENEGRO_IN_STOCK ? 'availability_ME' : 'availability_rule_disabled');
   return reasons.length ? `failed: ${reasons.join(', ')}` : 'passed';
 }
 
@@ -662,6 +660,7 @@ function toAuditRow(item) {
     target_fabric_percent_secondary: item.targetFabricPercentSecondary ?? '',
     composition_mode: item.compositionMode || '',
     composition_reason: item.compositionReason || '',
+    required_size: item.requiredSize || REQUIRED_SIZE,
     care_raw: item.careRaw || '',
     care_source: item.careSource || '',
     washable: item.washable ? 'yes' : 'no',
@@ -670,6 +669,7 @@ function toAuditRow(item) {
     contains_target_fabric: item.containsTargetFabric ? 'yes' : 'no',
     composition_passed: item.matches?.compositionMatch ? 'yes' : 'no',
     size_tokens: (item.sizeTokens || []).join(', '),
+    size_required_available: item.sizeSAvailable ? 'yes' : 'no',
     size_S_available: item.sizeSAvailable ? 'yes' : 'no',
     montenegro_available: item.montenegroAvailable ? 'yes' : 'no',
     final_matched: item.matched ? 'yes' : 'no',
@@ -696,10 +696,12 @@ function buildScopeSheets(scopeResult) {
     target_fabric_percent: item.targetFabricPercent,
     target_fabric_percent_secondary: item.targetFabricPercentSecondary ?? '',
     composition_reason: item.compositionReason || '',
+    required_size: item.requiredSize || REQUIRED_SIZE,
     care_raw: item.careRaw || '',
     care_source: item.careSource || '',
     washable: item.washable ? 'yes' : 'no',
     care_reason: item.careReason || '',
+    size_required_available: item.sizeSAvailable ? 'yes' : 'no',
     size_S_available: item.sizeSAvailable ? 'yes' : 'no',
     montenegro_available: item.montenegroAvailable ? 'yes' : 'no',
     price_eur: item.priceEur == null ? '' : item.priceEur,
@@ -722,10 +724,12 @@ function buildScopeSheets(scopeResult) {
       target_fabric_percent: '',
       target_fabric_percent_secondary: '',
       composition_reason: '',
+      required_size: REQUIRED_SIZE,
       care_raw: '',
       care_source: '',
       washable: '',
       care_reason: '',
+      size_required_available: '',
       size_S_available: '',
       montenegro_available: '',
       price_eur: '',
@@ -846,6 +850,7 @@ function buildQuickRejectedResult(productCard) {
     careSource: 'not_evaluated_color_gate',
     washable: false,
     careReason: 'not_evaluated_color_gate',
+    requiredSize: REQUIRED_SIZE,
     sizeTokens: [],
     sizeSAvailable: false,
     montenegroAvailable: productCard.inStock,
@@ -877,7 +882,16 @@ async function runMonitor(options = {}) {
     if (!state.scopes || typeof state.scopes !== 'object') state.scopes = {};
     const scopeResults = [];
 
-    for (const scope of SCOPE_CONFIGS) {
+    const enabledScopes = BASE_SCOPE_CONFIGS.filter((scope) => {
+      if (scope.id === 'women_new') return SCOPE_FLAGS.womenNew !== false;
+      if (scope.id === 'women_full') return SCOPE_FLAGS.womenFull !== false;
+      return true;
+    });
+    if (enabledScopes.length === 0) {
+      throw new Error('No scopes enabled. Run "npm run configure" and enable at least one scope.');
+    }
+
+    for (const scope of enabledScopes) {
       let catalogCards = [];
       if (scope.type === 'listing_url') {
         catalogCards = await fetchCatalogCardsFromListingUrl(browserContext, scope.url);

@@ -3,13 +3,16 @@
 const fs = require('fs');
 const path = require('path');
 const { runMonitor, OUTPUT_DIR } = require('./monitor.cjs');
+const { loadAppConfig } = require('./config.cjs');
 
 const APP_ROOT = path.resolve(__dirname, '..');
 const STATE_FILE = path.join(OUTPUT_DIR, 'scheduler-state.json');
-const TARGET_TIME_ZONE = 'Etc/GMT-1'; // GMT+1 fixed offset.
-const TARGET_WEEKDAYS = new Set(['MON', 'THU']);
-const TARGET_HOUR = 10;
-const ALLOWED_MINUTES = new Set([0, 1, 2, 3, 4]);
+const APP_CONFIG = loadAppConfig();
+const SCHEDULE = APP_CONFIG.schedule || {};
+const TARGET_TIME_ZONE = SCHEDULE.timeZone || 'Etc/GMT-1';
+const TARGET_WEEKDAYS = new Set((SCHEDULE.weekdays || ['MON', 'THU']).map((d) => String(d).toUpperCase()));
+const TARGET_HOUR = Number(SCHEDULE.hour ?? 10);
+const ALLOWED_MINUTES = new Set(Array.isArray(SCHEDULE.allowedMinutes) ? SCHEDULE.allowedMinutes : [0, 1, 2, 3, 4]);
 
 function ensureDir(dirPath) {
   fs.mkdirSync(dirPath, { recursive: true });

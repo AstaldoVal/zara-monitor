@@ -6,6 +6,7 @@
   "scripts": {
     "setup": "node scripts/setup-interactive.cjs",
     "setup:deps": "npm install && npx playwright install chrome",
+    "configure": "node scripts/configure.cjs",
     "doctor": "node scripts/doctor.cjs",
     "profile:onboard": "node scripts/profile-onboarding.cjs",
     "run-once": "node src/scheduler.cjs --run-now",

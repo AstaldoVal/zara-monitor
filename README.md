@@ -52,8 +52,9 @@ npm run setup
 The interactive setup will:
 1. install npm dependencies,
 2. install Playwright Chrome runtime,
-3. optionally open a dedicated Chrome profile for manual Zara onboarding,
-4. optionally install local scheduler.
+3. ask configuration questions one-by-one and save answers,
+4. optionally open a dedicated Chrome profile for manual Zara onboarding,
+5. optionally install local scheduler.
 
 ### 2) Manual onboarding step (if prompted)
 
@@ -89,6 +90,9 @@ npm run setup:deps
 # environment checks
 npm run doctor
 
+# re-open interactive config wizard (one question at a time)
+npm run configure
+
 # open dedicated profile onboarding
 npm run profile:onboard
 
@@ -105,6 +109,16 @@ npm run run-full
 - `ARCHITECTURE.md` - system design and extension points
 - `CONTRIBUTING.md` - development workflow and PR checklist
 - `LICENSE` - MIT license
+
+## Configuration
+
+- Defaults live in `config/default-config.json`.
+- User answers are stored in `config/user-config.json` (created by setup/configure wizard).
+- To update later, run:
+
+```bash
+npm run configure
+```
 
 Scheduler:
 
