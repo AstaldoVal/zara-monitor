@@ -10,14 +10,19 @@ It exports:
 - `output/zara-montenegro-matches-*.xlsx` (human-readable result),
 - `output/zara-montenegro-scan-*.json` (full debug snapshot).
 
-## Filters Used
+## Filters Used (all configurable)
 
-A product is included in `*_matches` only if all checks pass:
-- color matches target keywords,
-- composition passes strict main-fabric logic,
-- care is washable (`Do not wash` rejects item),
-- size `S` is available,
-- order is available for Montenegro.
+Defaults live in `config/default-config.json`. During onboarding (`npm run onboard` / `npm run setup`) or later (`npm run configure`), answers are saved to `config/user-config.json` and drive the same rules below. You get a result tailored to your choices, not a fixed hardcoded profile.
+
+A product is included in `*_matches` only if all checks that you left enabled pass:
+
+- **Color** — substring match against your list (`filters.colorKeywords`).
+- **Composition** — strict main-fabric logic; mixed main fabric must reach at least `filters.mixedMainMinTargetPercent` combined share of `filters.targetFabrics` in the main block (secondary/lining does not rescue a fail).
+- **Care** — if `filters.rejectDoNotWash` is true, any `Do not wash` in care text fails the item; set to false to ignore this rule.
+- **Size** — availability for `filters.requiredSize` (not only `S`; default is `S`).
+- **Montenegro availability** — if `filters.requireMontenegroInStock` is true, the usual in-stock / orderable checks apply; set to false to skip this gate (still useful for local experiments).
+
+To change filters after install: `npm run configure` (or ask your agent to run it). Advanced edits: `config/user-config.json` (see keys above).
 
 Excel diagnostics include:
 - `main_fabric_raw`, `secondary_fabric_raw`, `unknown_section_raw`,

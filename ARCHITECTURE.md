@@ -34,19 +34,23 @@ Results are exported per scope and in `combined_summary`.
 
 ## Filtering Model
 
-- **Color**: keyword matching with buckets and diagnostics.
+Filter lists and thresholds come from `config/default-config.json` merged with `config/user-config.json` (see `src/config.cjs`, wizard `scripts/configure.cjs`).
+
+- **Color**: keyword matching with buckets and diagnostics; keywords from `filters.colorKeywords`.
 - **Composition**:
   - strict main-fabric first,
   - secondary tracked separately,
-  - ambiguous unknown sections rejected.
+  - ambiguous unknown sections rejected,
+  - mixed-main threshold from `filters.mixedMainMinTargetPercent`,
+  - target fabric list from `filters.targetFabrics`.
 - **Care**:
-  - if care contains `Do not wash` -> reject.
+  - optional reject when care contains `Do not wash` (`filters.rejectDoNotWash`).
 - **Size**:
-  - require `S` availability from product metadata/text.
+  - require configured `filters.requiredSize` from product metadata/text.
 - **Availability**:
-  - Montenegro in-stock check from product availability endpoint.
+  - optional Montenegro in-stock gate (`filters.requireMontenegroInStock`).
 
-Final inclusion requires all checks to pass.
+Final inclusion requires every enabled check to pass.
 
 ## Setup Tooling
 
